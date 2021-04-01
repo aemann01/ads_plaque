@@ -1,0 +1,18 @@
+name: uf_rnaseq
+channels:
+  - defaults
+  - bioconda
+  - conda-forge
+dependencies:
+  - python=3.8
+  - bioconda::trinity=2.8.5
+  - bioconda::fastqc=0.11.9
+  - bioconda::cutadapt=3.3
+  - bioconda::pear=0.9.6
+  - bioconda::sortmerna=4.3.1
+  - bioconda::seqtk=1.3
+  - bioconda::star=2.7.8a
+  - bioconda::gffread=0.12.1
+  - conda-forge::parallel=20210222
+  - bioconda::samtools=1.12
+  - bioconda::subread=2.0.1
