@@ -36,20 +36,23 @@ rm SILVA*
 # index database
 bowtie2-build silva_rRNA.fa silva_rRNA.db
 # align with bowtie2
-ls *.1.trim.fastq.gz | sed 's/.1.trim.fastq.gz//' | parallel --gnu 'bowtie2 -x ../ribosomalRNA/silva_rRNA.db -1 {}.1.trim.fastq.gz -2 {}.2.trim.fastq.gz --end-to-end  --qc-filter -S ../ribosomalRNA/{}.sam 2>../ribosomalRNA/{}.out'
+ls *.1.trim.fastq.gz | sed 's/.1.trim.fastq.gz//' | parallel -j 50 --gnu 'bowtie2 -x ../ribosomalRNA/silva_rRNA.db -1 {}.1.trim.fastq.gz -2 {}.2.trim.fastq.gz --end-to-end  --qc-filter --no-unal --no-head --no-sq -t -S ../ribosomalRNA/{}.sam 2>../ribosomalRNA/{}.out'
+# get read ids to remove
+
+
+
+
+
+
+
+
+
 ls *sam | sed 's/.sam//' | while read line; do samtools view -f 4 $line.sam > $line.unmap.bam; done
 # clean up files for space
 rm ../cutadapt/*fastq.gz 
 ls *sam | sed 's/.sam//' | parallel --gnu 'samtools view -S -b {}.sam > {}.bam'
 # convert bam to fastq
 ls *unmap.bam | sed 's/.unmap.bam//' | parallel --gnu 'bedtools bamtofastq -i {}.unmap.bam -fq {}.1.filt.fq -fq2 {}.2.filt.fq' 
-
-
-
-
-
-
-
 
 
 
@@ -79,11 +82,12 @@ rm wget-log
 # 	--genomeFastaFiles GRCh38.p13.genome.fa  \
 # 	--runThreadN 2 \
 # 	--sjdbGTFfile gencode.v36.annotation.gtf 
-
-
-
-
 # map to genome
+cd ../cutadapt
+
+
+
+
 STAR --runThreadN 8 \
 	--runRNGseed 549 \
 	--readFilesCommand zcat \
@@ -95,6 +99,46 @@ STAR --runThreadN 8 \
 # convert bam to sam
 
 # filter out reads that map to human from dataset
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
