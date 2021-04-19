@@ -26,5 +26,6 @@ print("Saved %i records from %s to %s" % (count, args.fastq, args.output))
 if count < len(discard): print("Warning %i IDs not found in %s" % (len(discard)-count, args.fastq))
 
 subprocess.call(["gzip", args.output])
+subprocess.call(["rm", args.output])
 
 
