@@ -1,13 +1,26 @@
 # Read processing
 
-### 1. Download raw fastq files from /////
+### 1. Set up environment
+
+```bash
+conda env create -f environment.yml
+conda activate uf_rnaseq
+```
+
+To deactivate the environment
+
+```bash
+conda deactivate
+```
+
+### 2. Download raw fastq files from /////
 
 ```bash
 mkdir raw && cd raw
 wget -i //////
 ```
 
-### 2. Quality filter and trim raw reads
+### 3. Quality filter and trim raw reads
 
 First need to generate some basic quality metrics for each file
 
@@ -24,7 +37,7 @@ ls *_R1_*.fastq.gz | sed 's/_R1_001.fastq.gz//' | parallel 'cutadapt -a AGATCGGA
 
 NOTE: At this point you might want to remove raw reads to free up space
 
-### 3. Remove ribosomal RNA sequences
+### 4. Map ribosomal RNA sequences
 
 First need to download a reference database of LSU and SSU 16S and 18S rRNA sequences (here using SILVA v.138) to detect ribosomal RNAs.
 
@@ -46,7 +59,78 @@ bowtie2-build silva_rRNA.fa silva_rRNA.db
 Align sequences with bowtie2
 
 ```bash
+cd ../cutadapt
 ls *.1.trim.fastq.gz | sed 's/.1.trim.fastq.gz//' | parallel -j 50 --gnu 'bowtie2 -x ../ribosomalRNA/silva_rRNA.db -1 {}.1.trim.fastq.gz -2 {}.2.trim.fastq.gz --end-to-end  --qc-filter --no-unal --no-head --no-sq -t -S ../ribosomalRNA/{}.sam 2>../ribosomalRNA/{}.out'
 ```
 
+Get sequence identifiers that map to SILVA
 
+```bash
+ls *sam | while read line; do awk '{print $1}' $line | sort | uniq > $line.ids; done
+```
+
+### 5. Map human sequences
+
+```bash
+cd ..
+mkdir human_map && cd human_map
+```
+
+Download the human reference genome
+
+```bash
+wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_36/GRCh38.p13.genome.fa.gz
+gzip -d GRCh38.p13.genome.fa.gz
+```
+
+Index the genome
+
+```bash
+bowtie2-build GRCh38.p13.genome.fa GRCh38.p13.genome.db
+```
+
+Align your reads
+
+```bash
+cd ../cutadapt
+ls *.1.trim.fastq.gz | sed 's/.1.trim.fastq.gz//' | parallel -j 40 --gnu 'bowtie2 -x ../human_map/GRCh38.p13.genome.db -1 {}.1.trim.fastq.gz -2 {}.2.trim.fastq.gz --end-to-end  --qc-filter --no-unal --no-head --no-sq -t -S ../human_map/{}.sam 2>../human_map/{}.out 1>../human_map/{}.err'
+```
+
+Get sequence identifiers that map
+
+```bash
+ls *sam | while read line; do awk '{print $1}' $line | sort | uniq > $line.ids; done
+```
+
+### 6. Remove rRNA and human sequences
+
+```bash
+cd ../cutadapt
+ls *ids | sed 's/.filt.ids//' | parallel --gnu -j 32 'python ../remove_seqs.py -f {}.1.trim.fastq.gz -i {}.filt.ids -o ../filtered/{}.1.fastq'
+ls *ids | sed 's/.filt.ids//' | parallel --gnu -j 32 'python ../remove_seqs.py -f {}.2.trim.fastq.gz -i {}.filt.ids -o ../filtered/{}.2.fastq'
+```
+
+### 7. Concatenate paired end reads
+
+```bash
+ls *.1.* | sed 's/.1.fastq.gz//' | while read line; do pear -f $line.1.fastq.gz -r $line.2.fastq.gz -o /home/allie/uf_rnaseq/merged/$line.merge.fastq.gz -q 30 -j 7 1> /home/allie/uf_rnaseq/merged/$line.out; done
+```
+
+### 8. OPTIONAL Test BWA mapping
+
+```bash
+cd ../human_map
+bwa index GRCh38.p13.genome.fa
+bwa mem -t 60 /home/allie/chelsea_data/human_map/GRCh38.p13.genome.fa /home/allie/chelsea_data/filtered/21PD_S7.1.fastq.gz /home/allie/chelsea_data/filtered/21PD_S7.2.fastq.gz > 21PD_test_bwa.sam
+samtools view -S -b 21PD_test_bwa.sam > 21PD_test_bwa.bam
+# get unmapped reads
+samtools view -u -f 4 -F264 21PD_test_bwa.bam > 21PD_test_bwa.bam.temp1
+samtools view -u -f 8 -F260 21PD_test_bwa.bam > 21PD_test_bwa.bam.temp2
+samtools view -u -f 12 -F256 21PD_test_bwa.bam > 21PD_test_bwa.bam.temp3
+# merge together
+samtools merge -u 21PD_test_bwa.unmap.bam 21PD_test_bwa.bam.temp1 21PD_test_bwa.bam.temp2 21PD_test_bwa.bam.temp3
+# sort
+samtools sort -n 21PD_test_bwa.unmap.bam -o 21PD_test_bwa.sort.bam
+# bam to fastq
+bamToFastq -i 21PD_test_bwa.sort.bam -fq 21PD_test_bwa.sort.1.fq -fq2 21PD_test_bwa.sort.2.fq 
+```
