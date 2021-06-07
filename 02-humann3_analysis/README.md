@@ -1,5 +1,7 @@
 # HUMAnN 3.0 Processing
 
+[Full Documentation](https://github.com/biobakery/humann#humann_join_tables)
+
 ### 1. Setup environment
 
 ```bash
