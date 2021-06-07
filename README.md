@@ -15,20 +15,3 @@ To get this repository:
 git clone https://github.com/aemann01/ads_plaque.git && cd ads_plaque
 ```
 
-Run this following command to install the conda environment
-
-```bash
-conda env create -f environment.yml
-```
-
-To load the environment
-
-```bash
-conda activate ads_plaque
-```
-
-To deactivate the environment
-
-```bash
-conda deactivate
-```
