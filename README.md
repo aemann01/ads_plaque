@@ -15,3 +15,15 @@ To get this repository:
 git clone https://github.com/aemann01/ads_plaque.git && cd ads_plaque
 ```
 
+This repository is organized into separate folders, each of which have corresponding conda environments. To activate a repository:
+
+```bash
+conda env create environment.yml
+conda activate $NAME
+```
+
+To deactivate an environment
+
+```bash
+conda deactivate $NAME
+```
