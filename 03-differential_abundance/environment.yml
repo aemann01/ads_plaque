@@ -1,0 +1,8 @@
+name: uf_rnaseq_R
+channels:
+  - defaults
+  - r
+  - bioconda
+dependencies:
+  - r::r=3.6.0
+  - bioconda::bioconductor-aldex2=1.24.0
