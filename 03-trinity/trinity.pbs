@@ -5,9 +5,7 @@
 #PBS -j oe
 #PBS -m abe
 
-# load anaconda and environment
-#module add miniconda/4.2.12_py3
-#source activate uf_trinity
+# environment
 module add trinityrnaseq/2.11.0
 
 # move into scratch
