@@ -110,12 +110,6 @@ ls *ids | sed 's/.filt.ids//' | parallel --gnu -j 32 'python ../remove_seqs.py -
 ls *ids | sed 's/.filt.ids//' | parallel --gnu -j 32 'python ../remove_seqs.py -f {}.2.trim.fastq.gz -i {}.filt.ids -o ../filtered/{}.2.fastq'
 ```
 
-### 7. Concatenate paired end reads
-
-```bash
-ls *.1.* | sed 's/.1.fastq.gz//' | while read line; do pear -f $line.1.fastq.gz -r $line.2.fastq.gz -o /home/allie/uf_rnaseq/merged/$line.merge.fastq.gz -q 30 -j 7 1> /home/allie/uf_rnaseq/merged/$line.out; done
-```
-
 ### 8. OPTIONAL Test BWA mapping
 
 ```bash
