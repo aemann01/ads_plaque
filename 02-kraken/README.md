@@ -1,39 +1,58 @@
 # Reference based mapping with KRAKEN
 
+### 1. Download kraken2 nt database
+
 ```bash
-mkdir /home/allie/uf_rnaseq/kraken
-ls *1.derep.fa.gz | sed 's/.1.derep.fa.gz//' | while read line; do kraken2 --db /home/allie/refdb/kraken_nt/ --threads 8 --use-names --gzip-compressed --output /home/allie/uf_rnaseq/kraken/$line.out $line.1.derep.fa.gz; done
-```
-Get taxonomic ids from kraken results
-```bash
-cat *out | awk -F"\t" '{print $3}' | awk -F"(" '{print $2}' | sed 's/taxid //' | sed 's/)//' | sort | uniq > taxids
+kraken2-build --download-taxonomy --db kraken_nt
+kraken2-build --download-library nt --db kraken_nt
+kraken2-build --build --db kraken_nt --kmer-len 45 --threads 8
 ```
 
-Get the reference genome assembly data for all ncbi genomes
+### 2. Get taxonomic assignments with kraken2
+
+```bash
+cd //////
+ls *1.derep.fa.gz | sed 's/.1.derep.fa.gz//' | while read line; do kraken2 --db /home/allie/refdb/kraken_nt/ --threads 8 --use-names --gzip-compressed --output /home/allie/uf_rnaseq/kraken/$line.out $line.1.derep.fa.gz; done
+```
+
+Pull taxonomic IDs
+
+```bash
+cat *out | awk -F"\t" '{print $3}' | awk -F"(" '{print $2}' | sed 's/taxid //' | sed 's/)//' | sort | uniq > taxids
+ls *out | parallel 'gzip {}'
+```
+
+Download the full assembly report from NCBI
 
 ```bash
 wget ftp://ftp.ncbi.nlm.nih.gov/genomes/genbank/assembly_summary_genbank.txt
 ```
 
-Query using our taxid list (note: not all will have reference genomes) and pull assembly 
+Query using our taxid list for any genomes with gtf files (not all will have this)
 
 ```bash
 grep -E '^[0-9]' taxids > temp
 mv temp taxids
-# only want representative genomes
+# only want representative genomes and those with gtf files
 grep "representative genome" assembly_summary_genbank.txt > rep_genomes.txt
-cat taxids | while read line; do grep -w -m 1 $line rep_genomes.txt | awk -F"\t" '{print $20}' | sed 's/$/\/*genomic.fna.gz/' ; done > query.ftp
-wget -i query.ftp
-```
-
-Get all gtf files for your genomes
-
-```bash
-sed 's/*genomic.fna.gz/*genomic.gtf.gz/' query.ftp > query.gtf
+# note: in the command below you'll get a warning where "cyano" can't be found, still works
+cat taxids | while read line; do grep -w -m 1 $line rep_genomes.txt | awk -F"\t" '{print $20}' | sed 's/$/\/*genomic.gtf.gz/' ; done > query.gtf
 wget -i query.gtf
 ```
 
-Concatenate all together and map using STAR
+Get associated genomes from gtf file
+
+```bash
+# only keep those records that had a corresponding gtf file
+
+
+
+
+sed 's/*genomic.gtf.gz/*genomic.fna.gz/' query.ftp > query.genomes
+wget -i query.genomes
+```
+
+Concatenate all together 
 
 ```bash
 # first clean up
@@ -41,27 +60,24 @@ rm *rna* *cds* *.1
 
 ```
 
+### 3. Generate reference index
 
+NOTE: this step takes a long time but only has to be run once
 
-
-
-###########
-# ALIGNMENT
-###########
-# convert GFF to GTF format
-gffread ALL_genomes.gff -T -o ALL_genomes.gtf
-# generate reference index 
-# NOTE:
-# be careful to check no one is running something else when running this command or the computer will crash
-# NOTE:
-# this step takes a long time but only has to be run once
+```bash
+cd 04-STAR
+mkdir kraken_map && cd kraken_map
 STAR --runMode genomeGenerate \
-	--genomeFastaFiles ALL_genomes.fna  \
+	--genomeFastaFiles ../02-kraken/refgenomes/all_genomes.fna  \
 	--runThreadN 8 \
 	--limitGenomeGenerateRAM 66959267424 \
-	--sjdbGTFfile ALL_genomes.gtf \
+	--sjdbGTFfile ../02-kraken/refgenomes/all_genomes.gtf \
 	--genomeChrBinNbits 15
-# map to reference genomes
+```
+
+### 4. Map to reference genome
+
+```bash
 STAR --runThreadN 4 \
 	--genomeDir GenomeDir \
 	--readFilesIn filtered.fastq \
@@ -71,15 +87,17 @@ STAR --runThreadN 4 \
 	--quantMode TranscriptomeSAM GeneCounts \
 	--alignIntronMax 1 \
 	--chimOutType SeparateSAMold 
+```
 
-#################
-# GET GENE COUNTS
-#################
-# convert bam to sam formatted file
+### 5. Get gene counts
+
+Convert bam to sam
+
+```bash
 samtools view -h -o \
 	star-resultsAligned.toTranscriptome.out.sam \
 	star-resultsAligned.toTranscriptome.out.bam
-# what genes were identified?
-wget http://www.homd.org/ftp/HOMD_prokka_genomes/tsv/ALL_genomes.tsv
-# pull from locus id
-grep -v "^@" star-resultsAligned.toTranscriptome.out.sam | awk -F"\t" '{print $3}' | while read line; do grep -w -m 1 $line ALL_genomes.tsv ; done > test.txt
+```
+
+
+
