@@ -28,7 +28,7 @@ Download the full assembly report from NCBI
 wget ftp://ftp.ncbi.nlm.nih.gov/genomes/genbank/assembly_summary_genbank.txt
 ```
 
-Query using our taxid list for any genomes with gtf files (not all will have this)
+Query using our taxid list for any genomes with gtf files (not all will have gtf)
 
 ```bash
 grep -E '^[0-9]' taxids > temp
@@ -38,17 +38,17 @@ grep "representative genome" assembly_summary_genbank.txt > rep_genomes.txt
 # note: in the command below you'll get a warning where "cyano" can't be found, still works
 cat taxids | while read line; do grep -w -m 1 $line rep_genomes.txt | awk -F"\t" '{print $20}' | sed 's/$/\/*genomic.gtf.gz/' ; done > query.gtf
 wget -i query.gtf
+rm *.1
 ```
 
 Get associated genomes from gtf file
 
 ```bash
 # only keep those records that had a corresponding gtf file
-
-
-
-
-sed 's/*genomic.gtf.gz/*genomic.fna.gz/' query.ftp > query.genomes
+ls *gtf.gz | awk -F"_" '{print $1 "_" $2}' | while read line; do grep -m 1 $line query.gtf | sed 's/*genomic.gtf.gz//' ; done > query.genomes
+ls *gtf.gz | sed 's/gtf.gz/fna.gz/' > temp
+paste query.genomes fna.files -d "" > temp
+mv temp query.genomes
 wget -i query.genomes
 ```
 
@@ -56,24 +56,36 @@ Concatenate all together
 
 ```bash
 # first clean up
-rm *rna* *cds* *.1
-
+rm *.1
+cat *gtf.gz > all_genomes.gtf.gz
+gzip -d all_genomes.gtf.gz 
+rm *gtf.gz
+cat *fna.gz > all_genomes.fna.gz
+gzip -d all_genomes.fna.gz 
+rm *fna.gz 
 ```
 
 ### 3. Generate reference index
 
-NOTE: this step takes a long time but only has to be run once
+NOTE: this step takes a long time but only has to be run once. If this step is killed due to insufficient ram try reducing the number of threads or the genomeChrBinNbits value.
+
+I ended up needing to run this on a cluster with 12 threads and 94G of memory (couldn't run locally with 64G)
 
 ```bash
-cd 04-STAR
+cd ../../04-STAR
 mkdir kraken_map && cd kraken_map
-STAR --runMode genomeGenerate \
-	--genomeFastaFiles ../02-kraken/refgenomes/all_genomes.fna  \
-	--runThreadN 8 \
-	--limitGenomeGenerateRAM 66959267424 \
-	--sjdbGTFfile ../02-kraken/refgenomes/all_genomes.gtf \
-	--genomeChrBinNbits 15
+STAR --runMode genomeGenerate --genomeFastaFiles ../../02-kraken/refgenomes/all_genomes.fna  --runThreadN 1 --limitGenomeGenerateRAM 228697571594 --sjdbGTFfile ../../02-kraken/refgenomes/all_genomes.gtf --genomeChrBinNbits 5 1>star_genomeGenerate.out 2>star_genomeGenerate.err &
 ```
+
+
+
+
+
+
+
+
+
+
 
 ### 4. Map to reference genome
 

@@ -14,3 +14,4 @@ dependencies:
   - bioconda::samtools=1.12
   - bioconda::subread=2.0.1
   - bioconda::kraken2=2.1.2
+  
