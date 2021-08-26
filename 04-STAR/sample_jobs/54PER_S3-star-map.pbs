@@ -1,0 +1,23 @@
+#PBS -N STAR-map-54PER_S3
+#PBS -l select=1:ncpus=40:mem=500gb
+#PBS -l walltime=138:00:00
+#PBS -j oe
+#PBS -m abe
+#PBS -q bigmem
+
+# load module
+module add star/2.7.5c
+
+# move into scratch
+cd /scratch1/amann3/uf_rnaseq/
+
+# run command
+STAR --runThreadN 40 \
+	--genomeDir kraken_refgenomes/GenomeDir \
+	--readFilesIn <(gunzip -c 54PER_S3_R1_001.fastq.gz) <(gunzip -c 54PER_S3_R2_001.fastq.gz) \
+	--outFileNamePrefix 54PER_S3 \ 
+	--outSAMtype BAM Unsorted \ 
+	--outReadsUnmapped 54PER_S3.unmapped.bam \ 
+	--quantMode TranscriptomeSAM GeneCounts \ 
+	--alignIntronMax 1 \
+	--chimOutType SeparateSAMold
