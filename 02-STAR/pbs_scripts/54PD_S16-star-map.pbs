@@ -1,0 +1,23 @@
+#PBS -N 54PD_S16
+#PBS -l select=1:ncpus=40:mem=750gb
+#PBS -l walltime=72:00:00
+#PBS -j oe
+#PBS -m abe
+#PBS -q bigmem
+
+# load module
+source activate star2.7.5c
+
+# move into scratch
+cd /scratch1/amann3/uf_rnaseq/homd_mapped/
+
+# run command
+STAR --runThreadN 40 \
+	--genomeDir GenomeDir \
+	--readFilesIn <(gunzip -c ../54PD_S16_R1_001.fastq.gz) <(gunzip -c ../54PD_S16_R2_001.fastq.gz) \
+	--outFileNamePrefix 54PD_S16 \ 
+	--outSAMtype BAM Unsorted \ 
+	--outReadsUnmapped 54PD_S16.unmapped.bam \ 
+	--quantMode TranscriptomeSAM GeneCounts \ 
+	--alignIntronMax 1 \
+	--chimOutType SeparateSAMold
