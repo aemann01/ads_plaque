@@ -19,11 +19,11 @@ To activate the conda environment
 
 ```bash
 conda env create environment.yml
-conda activate uf_rnaseq
+conda activate 2022-ADS_plaque
 ```
 
 To deactivate the environment
 
 ```bash
-conda deactivate uf_rnaseq
+conda deactivate 2022-ADS_plaque
 ```
