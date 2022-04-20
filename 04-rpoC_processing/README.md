@@ -1,3 +1,23 @@
+### *rpoC* amplicon processing
+
+#### 1. Setup
+
+Download raw data from ////
+
+```bash
+cd $HOME/ads_plaque/04-rpoC_processing
+mkdir raw && cd raw
+wget ////
+cd ..
+```
+
+#### 2. Run quality filtering, read merging, ASV generation, chimeria removal with DADA2
+
+```bash
+jupyter-notebook DADA2_processing.ipynb
+```
+
+#### 3. Taxonomic assignment with Kraken2
 
 ```bash
 kraken2 --db ~/refdb/kraken_rpoc/ --threads 15 --use-names --output rep_set.kraken.out --unclassified-out rep_set.unclassified.kraken.out --confidence 0.01 rep_set.fa
