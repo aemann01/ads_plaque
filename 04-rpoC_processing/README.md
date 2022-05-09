@@ -39,3 +39,11 @@ sed -i 's/;/\t/g' taxonomy_bac.txt
 mafft --thread 55 rep_set.filt.fa > rep_set.align.fa
 raxmlHPC-PTHREADS-SSE3 -T 25 -m GTRCAT -c 25 -e 0.001 -p 31514 -f a -N 100 -x 02938 -n ref.tre -s rep_set.align.fa
 ```
+
+#### 3a. Build database for dada2 taxonomic assignment
+
+```bash
+grep ">" rpoc_ref.fa | awk -F"|" '{print $1}' | sed 's/>//' > ids
+cat ids | while read line; do esearch -db assembly -query $line < /dev/null | elink -target taxonomy | efetch -format native -mode xml | grep "ScientificName" | awk -F ">|<" 'BEGIN{ORS=", ";}{print $3;}' | awk -F"," 'BEGIN { OFS=";"}{first = $1; $1=""; print $0, first}' | sed 's/; ;/;/' | sed 's/; cellular organisms; //' | sed 's/; /;/g' | sed 's/ /_/g'; done > lineages
+
+```

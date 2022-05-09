@@ -9,15 +9,9 @@ dependencies:
   - bioconda::cutadapt=3.3
   - bioconda::seqtk=1.3
   - bioconda::star=2.7.5c
-  - conda-forge::parallel=20210222
+  - bioconda::kraken2=2.1.2
   - bioconda::samtools=1.12
   - bioconda::subread=2.0.1
-  - bioconda::kraken2=2.1.2
-  - conda-forge::r-base=4.1.2
-  - bioconda::bioconductor-deseq2=1.34.0
-  - bioconda::bioconductor-glimma=2.4.0
-  - anaconda::jupyter=1.0.0
-  - conda-forge::r-irkernel=1.3
-  - bioconda::htseq=2.0.1
   - bioconda::goatools=1.2.3
   - bioconda::bowtie2=2.4.5
+
