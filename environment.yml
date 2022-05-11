@@ -14,4 +14,5 @@ dependencies:
   - bioconda::subread=2.0.1
   - bioconda::goatools=1.2.3
   - bioconda::bowtie2=2.4.5
+  - bioconda::vsearch=2.21.1
 
