@@ -18,8 +18,8 @@ ls *fastq.gz | parallel 'fastqc {}'
 Filter by quality score (Q-30), remove TruSeq adapters, poly G tails. Since there is so much data this will take a long while. On a linux computer with 8 cores and 64G of ram this took about a weekend to complete.
 
 ```bash
-mkdir ../01-cutadapt
-ls *_R1_*.fastq.gz | sed 's/_R1_001.fastq.gz//' | parallel 'cutadapt -a AGATCGGAAGAG -A AGATCGGAAGAG --nextseq-trim=20 -o ../01-cutadapt/{}.1.trim.fastq.gz -p ../01-cutadapt/{}.2.trim.fastq.gz --trim-n --minimum-length 100 --max-n 0 -q 30,30 {}_R1_001.fastq.gz {}_R2_001.fastq.gz 1>../01-cutadapt/{}.trim.out'
+mkdir cutadapt
+ls *_R1_*.fastq.gz | sed 's/_R1_001.fastq.gz//' | parallel 'cutadapt -a AGATCGGAAGAG -A AGATCGGAAGAG --nextseq-trim=20 -o cutadapt/{}.1.trim.fastq.gz -p cutadapt/{}.2.trim.fastq.gz --trim-n --minimum-length 100 --max-n 0 -q 30,30 {}_R1_001.fastq.gz {}_R2_001.fastq.gz 1>cutadapt/{}.trim.out'
 ```
 
 NOTE: At this point you might want to remove raw reads to free up space
@@ -29,8 +29,7 @@ NOTE: At this point you might want to remove raw reads to free up space
 First need to download a reference database of LSU and SSU 16S and 18S rRNA sequences (here using SILVA v.138) to detect ribosomal RNAs.
 
 ```bash
-cd ..
-mkdir 02-ribosomalRNA && cd 02-ribosomalRNA
+mkdir ../../ribosomalRNA && cd ../../ribosomalRNA
 wget https://www.arb-silva.de/fileadmin/silva_databases/current/Exports/SILVA_138.1_LSURef_NR99_tax_silva.fasta.gz
 wget https://www.arb-silva.de/fileadmin/silva_databases/current/Exports/SILVA_138.1_SSURef_NR99_tax_silva.fasta.gz
 gzip -d SILVA*
@@ -47,21 +46,22 @@ bowtie2-build silva_rRNA.fa silva_rRNA.db
 Align sequences with bowtie2
 
 ```bash
-cd ../01-cutadapt
-ls *.1.trim.fastq.gz | sed 's/.1.trim.fastq.gz//' | parallel -j 50 --gnu 'bowtie2 -x ../02-ribosomalRNA/silva_rRNA.db -1 {}.1.trim.fastq.gz -2 {}.2.trim.fastq.gz --end-to-end  --qc-filter --no-unal --no-head --no-sq -t -S ../02-ribosomalRNA/{}.sam 2>../02-ribosomalRNA/{}.out'
+cd ../raw/cutadapt
+ls *.1.trim.fastq.gz | sed 's/.1.trim.fastq.gz//' | parallel -j 50 --gnu 'bowtie2 -x ../../ribosomalRNA/silva_rRNA.db -1 {}.1.trim.fastq.gz -2 {}.2.trim.fastq.gz --end-to-end  --qc-filter --no-unal --no-head --no-sq -t -S ../../ribosomalRNA/{}.sam 2>../../ribosomalRNA/{}.out'
 ```
 
-Get sequence identifiers that map to SILVA
+Get sequence identifiers that map to SILVA, remove sam files
 
 ```bash
 ls *sam | while read line; do awk '{print $1}' $line | sort | uniq > $line.ids; done
+rm *sam 
 ```
 
 ### 5. Map human sequences
 
 ```bash
 cd ..
-mkdir 03-human_map && cd 03-human_map
+mkdir human_map && cd human_map
 ```
 
 Download the human reference genome
@@ -80,22 +80,32 @@ bowtie2-build GRCh38.p13.genome.fa GRCh38.p13.genome.db
 Align your reads
 
 ```bash
-cd ../02-cutadapt
-ls *.1.trim.fastq.gz | sed 's/.1.trim.fastq.gz//' | parallel -j 40 --gnu 'bowtie2 -x ../03-human_map/GRCh38.p13.genome.db -1 {}.1.trim.fastq.gz -2 {}.2.trim.fastq.gz --end-to-end  --qc-filter --no-unal --no-head --no-sq -t -S ../03-human_map/{}.sam 2>../03-human_map/{}.out 1>../03-human_map/{}.err'
+cd ../raw/cutadapt/
+ls *.1.trim.fastq.gz | sed 's/.1.trim.fastq.gz//' | parallel -j 40 --gnu 'bowtie2 -x ../../human_map/GRCh38.p13.genome.db -1 {}.1.trim.fastq.gz -2 {}.2.trim.fastq.gz --end-to-end  --qc-filter --no-unal --no-head --no-sq -t -S ../../human_map/{}.sam 2>../../human_map/{}.out 1>../../human_map/{}.err'
 ```
 
 Get sequence identifiers that map
 
 ```bash
 ls *sam | while read line; do awk '{print $1}' $line | sort | uniq > $line.ids; done
+rm *sam
 ```
 
 ### 6. Remove rRNA and human sequences
 
+Concatenate ids to filter
+
 ```bash
-cd ../02-cutadapt
-ls *ids | sed 's/.filt.ids//' | parallel --gnu -j 32 'python ../00-scripts/remove_seqs.py -f {}.1.trim.fastq.gz -i {}.filt.ids -o ../04-filtered/{}.1.fastq'
-ls *ids | sed 's/.filt.ids//' | parallel --gnu -j 32 'python ../00-scripts/remove_seqs.py -f {}.2.trim.fastq.gz -i {}.filt.ids -o ../04-filtered/{}.2.fastq'
+mkdir ../raw/filtered
+ls *ids | sed 's/.sam.ids//' | parallel 'cat {}.sam.ids ../ribosomalRNA/{}.sam.ids | sort | uniq > ../raw/filtered/{}.filt.ids'
+```
+
+Remove unwanted reads
+
+```bash
+cd ../raw/filtered/
+ls *ids | sed 's/.filt.ids//' | parallel --gnu -j 32 'python ../../../00-scripts/remove_seqs.py -f ../cutadapt/{}.1.trim.fastq.gz -i {}.filt.ids -o {}.1.fastq'
+ls *ids | sed 's/.filt.ids//' | parallel --gnu -j 32 'python ../../../00-scripts/remove_seqs.py -f ../cutadapt/{}.2.trim.fastq.gz -i {}.filt.ids -o {}.2.fastq'
 ```
 
 ### 8. OPTIONAL Test BWA mapping

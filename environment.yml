@@ -15,4 +15,12 @@ dependencies:
   - bioconda::goatools=1.2.3
   - bioconda::bowtie2=2.4.5
   - bioconda::vsearch=2.21.1
+  - bioconda::interproscan=5.55_88.0
+  - bioconda::cblaster=1.3.12
+  - bioconda::hmmer=3.3.2
+  - conda-forge::parallel=20220222
+  - bioconda::kofamscan=1.3.0
+  - conda-forge::ruby=2.6.5p114
+  - bioconda::mcl=14.137
+
 
