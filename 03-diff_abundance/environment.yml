@@ -1,4 +1,4 @@
-name: 2022-ADS_plaque-analysis
+name: 2022-ADS_plaque-R
 channels:
   - defaults
   - bioconda

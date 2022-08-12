@@ -8,7 +8,7 @@ All samples were mapped to the Human Oral Microbiome Database using STAR v 2.7.5
 
 ```bash
 mkdir featurecounts
-ls *Aligned.out.bam | sed 's/Aligned.out.bam//' | while read line; do featureCounts -f -p -C -B -a ALL_genomes.gtf -o featurecounts/$line.out -T 60 $line\Aligned.out.bam -t CDS -g transcript_id; done
+ls *Aligned.out.bam | sed 's/Aligned.out.bam//' | while read line; do featureCounts -f -p -C -B -M -a ALL_genomes.gtf -o featurecounts/$line.out -T 60 $line\Aligned.out.bam -t CDS -g transcript_id; done
 ```
 
 #### 2. Get matrix of gene expression data from all samples
@@ -23,4 +23,4 @@ sed 's/Aligned.out.bam//g' read_counts.txt | sed 's/_S..\t/\t/'g | sed 's/_S.\t/
 mv temp read_counts.txt
 ```
 
-Now can do differential abundance analysis
+read_counts.txt is input file for differential abundance analyses
