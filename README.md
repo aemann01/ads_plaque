@@ -1,4 +1,4 @@
-# ads_plaque
+# ADS Plaque
 
 This repository describes the anlaysis performed in the paper //////
 
