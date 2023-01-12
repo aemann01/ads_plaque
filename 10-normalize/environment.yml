@@ -1,0 +1,9 @@
+name: 2022-ADS_plaque-MTXmodel
+channels:
+  - defaults
+  - bioconda
+  - conda-forge
+dependencies:
+  - conda-forge::r-base=4.2.1
+  - conda-forge::r-mumin=1.46.0
+
