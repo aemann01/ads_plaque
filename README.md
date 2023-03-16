@@ -1,6 +1,6 @@
 # ADS Plaque
 
-This repository describes the anlaysis performed in the paper //////
+This repository describes the anlaysis performed in the paper *Mann et al. //////*
 
 ### Setup
 
