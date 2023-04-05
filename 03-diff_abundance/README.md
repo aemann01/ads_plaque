@@ -4,7 +4,7 @@ Install and activate the environment
 
 ```bash
 conda env create -f environment.yml
-conda activate 2022-ADS_plaque_diffAbund
+conda activate 2022-ADS_plaque-R
 ```
 
 Add R kernel to Jupyter
