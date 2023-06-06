@@ -3,6 +3,8 @@
 This repository describes the anlaysis performed in the paper *Mann et al. //////*
 Note: Under construction :construction:
 
+[![DOI](https://zenodo.org/badge/353785934.svg)](https://zenodo.org/badge/latestdoi/353785934)
+
 ### Setup
 
 This repository assumes that you are running in a Unix environment (e.g., Mac OSX or Linux) and you have conda installed.
