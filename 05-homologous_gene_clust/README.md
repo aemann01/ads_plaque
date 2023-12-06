@@ -14,8 +14,8 @@ Pull genes annotated for the active enzymes in the ADS pathway (arcABDC) and ann
 
 ```bash
 grep "Arginine deiminase" ../03-STAR/homd_mapped_strict/ALL_genomes.tsv | awk '{print $1}' | sort | uniq > arcA.ids
-grep "Delta(1)-pyrroline-2-carboxylate reductase" ../03-STAR/homd_mapped_strict/ALL_genomes.tsv | awk '{print $1}' | sort | uniq > arcB.ids
-grep "Carbamate kinase 1" ../03-STAR/homd_mapped_strict/ALL_genomes.tsv | awk '{print $1}' | sort | uniq > arcC.ids
+grep "Ornithine carbamoyltransferase" ../03-STAR/homd_mapped_strict/ALL_genomes.tsv | awk '{print $1}' | sort | uniq > arcB.ids
+grep "Carbamate kinase" ../03-STAR/homd_mapped_strict/ALL_genomes.tsv | awk '{print $1}' | sort | uniq > arcC.ids
 grep "Arginine/ornithine antiporter" ../03-STAR/homd_mapped_strict/ALL_genomes.tsv | awk '{print $1}' | sort | uniq > arcD.ids
 # filter from protein fasta
 seqtk subseq ALL_genomes.faa arcA.ids > arcA.faa
