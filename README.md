@@ -1,6 +1,6 @@
 # ADS Plaque
 
-This repository describes the anlaysis performed in the paper *Mann et al. Heterogeneous lineage-specific arginine deiminase expression within dental microbiome species. Microbiology Spectrum (In Press)*
+This repository describes the anlaysis performed in the paper [*Mann et al. Heterogeneous lineage-specific arginine deiminase expression within dental microbiome species. Microbiology Spectrum (2024)*](https://journals.asm.org/doi/10.1128/spectrum.01445-23)
 
 [![DOI](https://zenodo.org/badge/353785934.svg)](https://zenodo.org/badge/latestdoi/353785934)
 
